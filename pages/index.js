@@ -34,7 +34,6 @@ export default function IndexPrincipal() {
           <span className="hover:text-yellow-500 cursor-pointer transition">Fútbol</span>
           <span className="hover:text-yellow-500 cursor-pointer transition">WWE</span>
           <span className="hover:text-yellow-500 cursor-pointer transition">Tenis</span>
-          <Link href="/colaboradores" className="text-yellow-600 border border-yellow-600 px-3 py-1 rounded hover:bg-yellow-600 hover:text-black transition font-black">REDACCIÓN</Link>
         </nav>
       </header>
 
@@ -76,7 +75,7 @@ export default function IndexPrincipal() {
       </main>
 
       <footer className="p-10 border-t border-zinc-900 text-center text-zinc-700 text-[10px] tracking-widest uppercase font-bold">
-        Directo Al Palo © 2025 | Quilpalta.online
+        Directo Al Palo © 2025 | directoalpalo.cl
       </footer>
     </div>
   );
