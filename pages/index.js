@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { createClient } from '@supabase/supabase-js';
+import Link from 'next/link';
 
 // Conexión con las llaves que ya tienes
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -48,28 +49,30 @@ export default function IndexPrincipal() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
             {noticias.map((nota) => (
-              <article key={nota.id} className="flex flex-col group cursor-pointer">
-                <div className="relative overflow-hidden aspect-video mb-4 border-b-4 border-yellow-600">
-                  <img 
-                    src={nota.imagen_url} 
-                    alt={nota.titulo} 
-                    className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-700 opacity-80 group-hover:opacity-100"
-                  />
-                  <span className="absolute top-2 left-2 bg-yellow-600 text-black text-[10px] font-black px-2 py-1 uppercase">
-                    {nota.categoria}
-                  </span>
-                </div>
-                <h2 className="text-2xl font-bold leading-none mb-3 group-hover:text-yellow-500 transition">
-                  {nota.titulo}
-                </h2>
-                <p className="text-gray-400 text-sm line-clamp-2 mb-4 italic">
-                  "{nota.cuerpo.substring(0, 100)}..."
-                </p>
-                <div className="mt-auto flex items-center justify-between text-[10px] uppercase tracking-widest text-gray-500 font-bold">
-                  <span>Por {nota.autor}</span>
-                  <span>{new Date(nota.created_at).toLocaleDateString()}</span>
-                </div>
-              </article>
+              <link href={`/noticia/${nota.id}`} key={nota.id}>
+                <article className="flex flex-col group cursor-pointer">
+                  <div className="relative overflow-hidden aspect-video mb-4 border-b-4 border-yellow-600">
+                    <img
+                      src={nota.imagen_url}
+                      alt={nota.titulo}
+                      className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-700 opacity-80 group-hover:opacity-100"
+                    />
+                    <span className="absolute top-2 left-2 bg-yellow-600 text-black text-[10px] font-black px-2 py-1 uppercase">
+                      {nota.categoria}
+                    </span>
+                  </div>
+                  <h2 className="text-2xl font-bold leading-none mb-3 group-hover:text-yellow-500 transition">
+                    {nota.titulo}
+                  </h2>
+                  <p className="text-gray-400 text-sm line-clamp-2 mb-4 italic">
+                    "{nota.cuerpo.substring(0, 100)}..."
+                  </p>
+                  <div className="mt-auto flex items-center justify-between text-[10px] uppercase tracking-widest text-gray-500 font-bold">
+                    <span>Por {nota.autor}</span>
+                    <span>{new Date(nota.created_at).toLocaleDateString()}</span>
+                  </div>
+                </article>
+              </link>
             ))}
           </div>
         )}
