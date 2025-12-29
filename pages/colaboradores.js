@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { createClient } from '@supabase/supabase-js';
 
-// Configuración de conexión (Usa tus datos del Paso 1)
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
@@ -32,16 +31,22 @@ export default function PanelColaboradores() {
     try {
       let urlImagenFinal = '';
 
-      // 1. Subir la imagen al Storage
       if (noticia.imagen) {
-        const nombreArchivo = `${Date.now()}-${noticia.imagen.name}`;
+        // Generamos un nombre único y limpio para la imagen
+        const extension = noticia.imagen.name.split('.').pop();
+        const nombreArchivo = `${Date.now()}.${extension}`;
+        
+        // Subida al bucket 'imagenes-noticias'
         const { data: dataFoto, error: errorFoto } = await supabase.storage
           .from('imagenes-noticias')
-          .upload(nombreArchivo, noticia.imagen);
+          .upload(nombreArchivo, noticia.imagen, {
+            cacheControl: '3600',
+            upsert: false
+          });
 
         if (errorFoto) throw errorFoto;
 
-        // Obtener la URL pública de la foto
+        // Obtenemos la URL pública
         const { data: dataUrl } = supabase.storage
           .from('imagenes-noticias')
           .getPublicUrl(nombreArchivo);
@@ -49,7 +54,7 @@ export default function PanelColaboradores() {
         urlImagenFinal = dataUrl.publicUrl;
       }
 
-      // 2. Insertar los datos en la tabla 'noticias'
+      // Inserción en la tabla de noticias
       const { error: errorInsert } = await supabase
         .from('noticias')
         .insert([
@@ -64,54 +69,56 @@ export default function PanelColaboradores() {
 
       if (errorInsert) throw errorInsert;
 
-      alert("¡Noticia de Directo Al Palo publicada correctamente!");
+      alert("¡Noticia publicada con éxito!");
       setNoticia({ titulo: '', categoria: 'Futbol', cuerpo: '', imagen: null, autor: '' });
 
     } catch (error) {
-      console.error("Error completo:", error);
-      alert("Hubo un error al publicar.");
+      console.error("Error completo de Supabase:", error);
+      alert(`Error: ${error.message || "Fallo en la comunicación con el servidor"}`);
     } finally {
       setPublicando(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-black text-white p-8">
+    <div className="min-h-screen bg-black text-white p-8 font-sans">
       <div className="max-w-3xl mx-auto bg-zinc-900 border border-yellow-600/30 p-8 rounded-xl shadow-2xl">
         <header className="flex items-center gap-6 mb-8 border-b border-yellow-600/20 pb-6">
           <img 
             src="/logo-directo-al-palo.jpg" 
-            alt="Logo Directo Al Palo" 
-            className="w-20 h-20 rounded-full border-2 border-yellow-500 shadow-[0_0_15px_rgba(234,179,8,0.3)]" 
+            alt="Logo" 
+            className="w-20 h-20 rounded-full border-2 border-yellow-500 shadow-lg shadow-yellow-500/20" 
           />
           <div>
-            <h1 className="text-3xl font-black uppercase tracking-tighter">Directo Al Palo</h1>
-            <p className="text-yellow-500 font-medium tracking-widest text-xs uppercase">Gestión de Colaboradores</p>
+            <h1 className="text-3xl font-black uppercase tracking-tighter">
+              Directo <span className="text-yellow-500">Al Palo</span>
+            </h1>
+            <p className="text-yellow-500 font-bold tracking-widest text-[10px] uppercase">Redacción de Colaboradores</p>
           </div>
         </header>
 
         <form onSubmit={enviarNoticia} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="flex flex-col">
-              <label className="text-xs font-bold text-yellow-500 uppercase mb-2">Título de la Noticia</label>
+              <label className="text-[10px] font-black text-yellow-500 uppercase mb-2 tracking-widest">Titular</label>
               <input 
                 type="text" 
                 name="titulo"
                 value={noticia.titulo}
                 onChange={manejarCambio}
-                className="bg-zinc-800 border-0 p-3 rounded text-white focus:ring-2 focus:ring-yellow-500 outline-none transition" 
-                placeholder="Titular impactante..."
+                className="bg-zinc-800 border-0 p-3 rounded text-white focus:ring-1 focus:ring-yellow-500 outline-none text-sm" 
+                placeholder="Título de la noticia..."
                 required 
               />
             </div>
             <div className="flex flex-col">
-              <label className="text-xs font-bold text-yellow-500 uppercase mb-2">Firma (Autor)</label>
+              <label className="text-[10px] font-black text-yellow-500 uppercase mb-2 tracking-widest">Autor</label>
               <input 
                 type="text" 
                 name="autor"
                 value={noticia.autor}
                 onChange={manejarCambio}
-                className="bg-zinc-800 border-0 p-3 rounded text-white focus:ring-2 focus:ring-yellow-500 outline-none transition" 
+                className="bg-zinc-800 border-0 p-3 rounded text-white focus:ring-1 focus:ring-yellow-500 outline-none text-sm" 
                 placeholder="Tu nombre"
                 required 
               />
@@ -120,12 +127,12 @@ export default function PanelColaboradores() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="flex flex-col">
-              <label className="text-xs font-bold text-yellow-500 uppercase mb-2">Sección</label>
+              <label className="text-[10px] font-black text-yellow-500 uppercase mb-2 tracking-widest">Categoría</label>
               <select 
                 name="categoria"
                 value={noticia.categoria}
                 onChange={manejarCambio}
-                className="bg-zinc-800 border-0 p-3 rounded text-white focus:ring-2 focus:ring-yellow-500 outline-none transition"
+                className="bg-zinc-800 border-0 p-3 rounded text-white focus:ring-1 focus:ring-yellow-500 outline-none text-sm"
               >
                 <option value="Futbol">Fútbol</option>
                 <option value="WWE">WWE</option>
@@ -134,25 +141,26 @@ export default function PanelColaboradores() {
               </select>
             </div>
             <div className="flex flex-col">
-              <label className="text-xs font-bold text-yellow-500 uppercase mb-2">Imagen de Portada</label>
+              <label className="text-[10px] font-black text-yellow-500 uppercase mb-2 tracking-widest">Imagen</label>
               <input 
                 type="file" 
+                accept="image/*"
                 onChange={manejarImagen}
-                className="text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-xs file:font-bold file:bg-yellow-600 file:text-black hover:file:bg-yellow-500 file:cursor-pointer" 
+                className="text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-[10px] file:font-black file:bg-yellow-600 file:text-black hover:file:bg-yellow-500 cursor-pointer" 
                 required
               />
             </div>
           </div>
 
           <div className="flex flex-col">
-            <label className="text-xs font-bold text-yellow-500 uppercase mb-2">Contenido de la Nota</label>
+            <label className="text-[10px] font-black text-yellow-500 uppercase mb-2 tracking-widest">Contenido</label>
             <textarea 
               name="cuerpo"
               value={noticia.cuerpo}
               onChange={manejarCambio}
               rows="10" 
-              className="bg-zinc-800 border-0 p-4 rounded text-white focus:ring-2 focus:ring-yellow-500 outline-none resize-none leading-relaxed"
-              placeholder="Escribe el cuerpo de la noticia aquí..."
+              className="bg-zinc-800 border-0 p-4 rounded text-white focus:ring-1 focus:ring-yellow-500 outline-none resize-none text-sm leading-relaxed"
+              placeholder="Escribe la noticia completa..."
               required
             ></textarea>
           </div>
@@ -160,13 +168,13 @@ export default function PanelColaboradores() {
           <button 
             type="submit" 
             disabled={publicando}
-            className={`w-full py-4 rounded-lg font-black uppercase tracking-widest transition-all ${
+            className={`w-full py-4 rounded font-black uppercase tracking-widest text-sm transition-all ${
               publicando 
-                ? 'bg-zinc-700 cursor-not-allowed' 
-                : 'bg-yellow-600 hover:bg-yellow-500 text-black shadow-[0_5px_15px_rgba(202,138,4,0.4)] hover:-translate-y-1'
+                ? 'bg-zinc-700 text-zinc-500 cursor-not-allowed' 
+                : 'bg-yellow-600 hover:bg-yellow-500 text-black shadow-lg shadow-yellow-600/20'
             }`}
           >
-            {publicando ? 'Subiendo datos...' : 'Publicar en Directo Al Palo'}
+            {publicando ? 'PUBLICANDO...' : 'SUBIR A DIRECTO AL PALO'}
           </button>
         </form>
       </div>
